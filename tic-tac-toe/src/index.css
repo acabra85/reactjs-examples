@@ -37,6 +37,10 @@ ol, ul {
   width: 34px;
 }
 
+.winner-cell {
+  background-color: green;
+}
+
 .square:focus {
   outline: none;
 }

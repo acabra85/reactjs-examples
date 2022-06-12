@@ -42,15 +42,19 @@ class Board extends React.Component {
   }
 }
 
+const newMove = () => {
+  return {
+    squares: Array(9).fill(null),
+    id: 0,
+    move: null,
+  };
+};
 
 class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [{
-          squares: Array(9).fill(null),
-          id: 0,
-      }],
+      history: [newMove()],
       turnX: true,
       winner: null,
       gameOver: false,
@@ -59,6 +63,7 @@ class Game extends React.Component {
     this.handleSquareClick = this.handleSquareClick.bind(this);
     this.validateState = this.validateState.bind(this);
     this.isWinnerLine = this.isWinnerLine.bind(this);
+    this.translateMove = this.translateMove.bind(this);
     this.goTo = this.goTo.bind(this);
     this.restart = this.restart.bind(this);
     this.winnerLines = [
@@ -75,10 +80,7 @@ class Game extends React.Component {
   
   restart() {
     this.setState({
-      history: [{
-          squares: Array(9).fill(null),
-          id: 0,
-      }],
+      history: [newMove()],
       turnX: true,
       winner: null,
       gameOver: false,
@@ -112,6 +114,10 @@ class Game extends React.Component {
       }
     }
   }
+
+  translateMove(id) {
+    return `${Math.floor(id/3)},${id%3}`;
+  }
   
   handleSquareClick(id) {
     if(this.state.boardId !== this.state.history.length-1) {
@@ -128,10 +134,12 @@ class Game extends React.Component {
     const nextTurn = !this.state.turnX;
     const squares = current.squares.slice();
     squares[id] = this.state.turnX ? 'X': 'O';
+    const _translatedMove = this.translateMove(id);
     this.setState({
       history: this.state.history.concat([{
         squares: squares,
         id: (current.id + 1),
+        move: _translatedMove
       }]),
       turnX: nextTurn,
       boardId: current.id + 1,
@@ -147,10 +155,10 @@ class Game extends React.Component {
       prev: current.id - 1 >= 0,
     };
     const moves = this.state.history.map((h) => {
-      
-      const gotoLabel = h.id == 0 ? "Start" : `Move #${h.id+1}`
+      const player = (h.id % 2) !== 0 ? 'X' : 'O';
+      const gotoLabel = h.id === 0 ? "Start" : `${player} moved [${h.move}]`
       return <li key={h.id}>
-        <button onClick={() => this.goTo(h.id)}>Go to {gotoLabel}</button>
+        <button onClick={() => this.goTo(h.id)}>{gotoLabel}</button>
       </li>;
     });
     return (
