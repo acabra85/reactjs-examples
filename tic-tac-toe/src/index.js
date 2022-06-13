@@ -15,6 +15,7 @@ class Board extends React.Component {
   renderSquare(i) {
     const isWinner = this.props.winner && this.props.winner.indexOf(i) >= 0;
     return <Square 
+            key={i}
              value={this.props.squares[i]}
              winner={isWinner}
              onClick={() => this.props.onClick(i)}
@@ -23,11 +24,10 @@ class Board extends React.Component {
 
   render() {
     const _ref = this;
-    const rows = Array(3).fill(null).map((v,i) => { 
+    const toMap = Array(3).fill(null);
+    const rows = toMap.map((v,i) => { 
       return <div key={i} className="board-row">
-        {_ref.renderSquare(i*3)}
-        {_ref.renderSquare(i*3 + 1)}
-        {_ref.renderSquare(i*3 + 2)}
+        {toMap.map((el, idx) => _ref.renderSquare(i*3 + idx))}
       </div>
     });
     return (
@@ -137,8 +137,9 @@ class Game extends React.Component {
   
   render() {
     const current = this.state.history[this.state.boardId];
-    const status = 'Next player: ' + (current.gameOver ? '' : (current.id % 2 === 0 ? 'X' : 'O'));
-    const winner = current.winnerLine ? 'The winner is: ' + current.squares[current.winnerLine[0]] + '!!!': '';
+    const turnLabel = 'Next player: ' + (current.gameOver ? '' : (current.id % 2 === 0 ? 'X' : 'O'));
+    const winnerLabel = current.winnerLine ? 'The winner is: ' + current.squares[current.winnerLine[0]] + '!!!': '';
+    const statusLabel = current.gameOver ? winnerLabel : turnLabel;
     const buttons = {
       next: current.id + 1 < this.state.history.length ,
       prev: current.id - 1 >= 0,
@@ -154,7 +155,7 @@ class Game extends React.Component {
     return (
       <div className="game">
         <div className="game-board">
-          <Board status={status} winner={current.winnerLine} squares={current.squares} onClick={(i) => this.handleSquareClick(i)} />
+          <Board winner={current.winnerLine} squares={current.squares} onClick={(i) => this.handleSquareClick(i)} />
           <div >
             <button disabled={!buttons.prev} onClick={() => this.goTo(current.id - 1)}>
               {'<<'}
@@ -170,8 +171,7 @@ class Game extends React.Component {
           </div>
         </div>
         <div className="game-info">
-          <div>{status}</div>
-          <div className="game_result">{winner}</div>
+          <div className={current.winnerLine ? "game_result" : ""}>{statusLabel}</div>
           <ol>{moves}</ol>
         </div>
       </div>
