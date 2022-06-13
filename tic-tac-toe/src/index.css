@@ -16,7 +16,14 @@ ol, ul {
 .status {
   margin-bottom: 10px;
 }
-.game_result {
+
+.game-result-winner {
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: green;
+}
+
+.game-result-draw {
   margin-bottom: 10px;
   font-weight: bold;
   color: red;

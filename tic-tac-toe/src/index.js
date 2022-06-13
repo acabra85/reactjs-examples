@@ -129,7 +129,7 @@ class Game extends React.Component {
         move: _translatedMove,
         winnerLine: _ref.getWinnerLine(squares),
         turnX: nextTurn,
-        gameOver: winnerLine !== null,
+        gameOver: winnerLine !== null || current.id + 1 === 9,
       }]),
       boardId: current.id + 1,
     }, () => console.log('updated'));    
@@ -137,9 +137,9 @@ class Game extends React.Component {
   
   render() {
     const current = this.state.history[this.state.boardId];
-    const turnLabel = 'Next player: ' + (current.gameOver ? '' : (current.id % 2 === 0 ? 'X' : 'O'));
+    const turnLabel = current.gameOver ? 'Game Over: Draw!!' : 'Next player: ' + (current.id % 2 === 0 ? 'X' : 'O');
     const winnerLabel = current.winnerLine ? 'The winner is: ' + current.squares[current.winnerLine[0]] + '!!!': '';
-    const statusLabel = current.gameOver ? winnerLabel : turnLabel;
+    const statusLabel = current.gameOver && current.winnerLine ? winnerLabel : turnLabel;
     const buttons = {
       next: current.id + 1 < this.state.history.length ,
       prev: current.id - 1 >= 0,
@@ -171,7 +171,7 @@ class Game extends React.Component {
           </div>
         </div>
         <div className="game-info">
-          <div className={current.winnerLine ? "game_result" : ""}>{statusLabel}</div>
+          <div className={current.winnerLine ? "game-result-winner" : (current.gameOver ? "game-result-draw" : "")}>{statusLabel}</div>
           <ol>{moves}</ol>
         </div>
       </div>
