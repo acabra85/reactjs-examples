@@ -3,18 +3,20 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 
 function Square(props) {
+  const class_name = !props.winner ? "square" : "square winner-cell"
   return (
-      <button className="square" onClick={props.onClick}>
+      <button className={class_name} onClick={props.onClick}>
         {props.value}
       </button>
     );
 }
 
 class Board extends React.Component {
-  
   renderSquare(i) {
+    const isWinner = this.props.winner && this.props.winner.indexOf(i) >= 0;
     return <Square 
              value={this.props.squares[i]}
+             winner={isWinner}
              onClick={() => this.props.onClick(i)}
              />;
   }
@@ -22,14 +24,16 @@ class Board extends React.Component {
   render() {
     const _ref = this;
     const rows = Array(3).fill(null).map((v,i) => { 
-      return <div className="board-row">
+      return <div key={i} className="board-row">
         {_ref.renderSquare(i*3)}
         {_ref.renderSquare(i*3 + 1)}
         {_ref.renderSquare(i*3 + 2)}
       </div>
     });
     return (
-      <div>{rows}</div>
+      <div>
+        {rows}
+      </div>
     );
   }
 }
@@ -39,6 +43,8 @@ const newMove = () => {
     squares: Array(9).fill(null),
     id: 0,
     move: null,
+    gameOver: false,
+    turnX: true,
   };
 };
 
@@ -47,13 +53,9 @@ class Game extends React.Component {
     super(props);
     this.state = {
       history: [newMove()],
-      turnX: true,
-      winner: null,
-      gameOver: false,
       boardId: 0,
     };
     this.handleSquareClick = this.handleSquareClick.bind(this);
-    this.validateState = this.validateState.bind(this);
     this.isWinnerLine = this.isWinnerLine.bind(this);
     this.translateMove = this.translateMove.bind(this);
     this.goTo = this.goTo.bind(this);
@@ -73,9 +75,6 @@ class Game extends React.Component {
   restart() {
     this.setState({
       history: [newMove()],
-      turnX: true,
-      winner: null,
-      gameOver: false,
       boardId: 0,
     });
   }
@@ -88,23 +87,18 @@ class Game extends React.Component {
   
   isWinnerLine(sq, line) {
     const [a, b, c] = line;
-    if(sq[a] && sq[a] === sq[b] && sq[b] === sq[c]) return sq[c];
-    return null;
+    if(sq[a] && sq[a] === sq[b] && sq[b] === sq[c]) return true;
+    return false;
   }
   
-  validateState() {
-    const sq = this.state.history[this.state.history.length - 1].squares;
+  getWinnerLine(sq) {
     for(let i=0;i<this.winnerLines.length; ++i) {
       const wLine = this.winnerLines[i];
-      const winner = this.isWinnerLine(sq, wLine);
-      if(winner) {
-        this.setState({
-          gameOver: true,
-          winner: winner
-        });
-        return;
+      if(this.isWinnerLine(sq, wLine)) {
+        return wLine;
       }
     }
+    return null;
   }
 
   translateMove(id) {
@@ -118,45 +112,48 @@ class Game extends React.Component {
     }
     const current = this.state.history[this.state.history.length - 1];
     
-    if(this.state.gameOver || current.squares[id]) {
+    if(current.gameOver || current.squares[id]) {
       console.log('no more moves');
       return;
     }
-    
-    const nextTurn = !this.state.turnX;
+    const _ref = this;
+    const nextTurn = !current.turnX;
     const squares = current.squares.slice();
-    squares[id] = this.state.turnX ? 'X': 'O';
+    squares[id] = current.turnX ? 'X': 'O';
+    const winnerLine = _ref.getWinnerLine(squares)
     const _translatedMove = this.translateMove(id);
     this.setState({
       history: this.state.history.concat([{
         squares: squares,
         id: (current.id + 1),
-        move: _translatedMove
+        move: _translatedMove,
+        winnerLine: _ref.getWinnerLine(squares),
+        turnX: nextTurn,
+        gameOver: winnerLine !== null,
       }]),
-      turnX: nextTurn,
       boardId: current.id + 1,
-    }, this.validateState);    
+    }, () => console.log('updated'));    
   }
   
   render() {
     const current = this.state.history[this.state.boardId];
-    const status = 'Next player: ' + (this.state.gameOver ? '' : (current.id % 2 === 0 ? 'X' : 'O'));
-    const winner = this.state.winner ? 'The winner is: ' + this.state.winner + '!!!': '';
+    const status = 'Next player: ' + (current.gameOver ? '' : (current.id % 2 === 0 ? 'X' : 'O'));
+    const winner = current.winnerLine ? 'The winner is: ' + current.squares[current.winnerLine[0]] + '!!!': '';
     const buttons = {
       next: current.id + 1 < this.state.history.length ,
       prev: current.id - 1 >= 0,
     };
-    const moves = this.state.history.map((h) => {
+    const moves = this.state.history.map((h, idx) => {
       const player = (h.id % 2) !== 0 ? 'X' : 'O';
       const gotoLabel = h.id === 0 ? "Start" : `${player} moved [${h.move}]`
-      return <li key={h.id}>
+      return <li key={idx}>
         <button onClick={() => this.goTo(h.id)}>{gotoLabel}</button>
       </li>;
     });
     return (
       <div className="game">
         <div className="game-board">
-          <Board status={status} winner={winner} squares={current.squares} onClick={(i) => this.handleSquareClick(i)} />
+          <Board status={status} winner={current.winnerLine} squares={current.squares} onClick={(i) => this.handleSquareClick(i)} />
           <div >
             <button disabled={!buttons.prev} onClick={() => this.goTo(current.id - 1)}>
               {'<<'}
