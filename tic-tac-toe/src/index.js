@@ -145,9 +145,10 @@ class Game extends React.Component {
     };
     const moves = this.state.history.map((h, idx) => {
       const player = (h.id % 2) !== 0 ? 'X' : 'O';
-      const gotoLabel = h.id === 0 ? "Start" : `${player} moved [${h.move}]`
-      return <li key={idx}>
-        <button onClick={() => this.goTo(h.id)}>{gotoLabel}</button>
+      const gotoLabel = h.id === 0 ? "Start" : `${player} moved [${h.move}]`;
+      const buttonClass = current.id === h.id ? "current-button-move" : "";
+      return <li key={idx} className={buttonClass}>
+        <button onClick={() => this.goTo(h.id)} className={buttonClass}>{gotoLabel}</button>
       </li>;
     });
     return (

@@ -41,6 +41,10 @@ ol, ul {
   background-color: green;
 }
 
+.current-button-move {
+  font-weight: bold;
+}
+
 .square:focus {
   outline: none;
 }
