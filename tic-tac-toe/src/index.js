@@ -139,7 +139,7 @@ class Game extends React.Component {
         gameOver: winnerLine !== null || current.id + 1 === 9,
       }]),
       boardId: current.id + 1,
-    }, () => console.log('updated'));
+    });
   }
   
   render() {
@@ -186,7 +186,9 @@ class Game extends React.Component {
               checked={this.state.sortAscending}
               onChange={e => {}}/>
           </div>
-          <ol reversed={!this.state.sortAscending}>{this.state.sortAscending ? moves :  moves.reverse()}</ol>
+          <ol 
+            reversed={!this.state.sortAscending} 
+            start={this.state.sortAscending ? '0' : this.state.history.length - 1}>{this.state.sortAscending ? moves :  moves.reverse()}</ol>
         </div>
       </div>
     );
