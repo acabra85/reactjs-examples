@@ -186,7 +186,7 @@ class Game extends React.Component {
     const winnerLines = getWinnerLinesBoard(this.state.rows, cols);
     if(winnerLines) {
       this.setState({
-        history: [newMove(_ref.state.cols, cols)],
+        history: [newMove(_ref.state.rows, cols)],
         boardId: 0,
         sortAscending: true,
         cols: cols,
@@ -198,10 +198,10 @@ class Game extends React.Component {
   restart() {
     const _ref = this;
     this.setState({
-      history: [newMove(_ref.state.rows, _ref.state.rows)],
+      history: [newMove(_ref.state.rows, _ref.state.cols)],
       boardId: 0,
       sortAscending: true,
-      winnerLines: getWinnerLinesBoard(_rows, _cols),
+      winnerLines: getWinnerLinesBoard(_ref.state.rows, _ref.state.cols),
     });
   }
   
