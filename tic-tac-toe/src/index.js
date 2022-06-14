@@ -16,6 +16,11 @@ const _winnerLines3x3 = [
 ];
 
 const _winnerLines3x4 = [
+  //ver
+  [0, 4, 8],
+  [1, 5, 9],
+  [2, 6, 10],
+  [3, 7, 11],
   //hor
   [0, 1, 2],
   [1, 2, 3],
@@ -23,11 +28,6 @@ const _winnerLines3x4 = [
   [5, 6, 7],
   [8, 9, 10],
   [9, 10, 11],
-  //ver
-  [0, 4, 8],
-  [1, 5, 9],
-  [2, 6, 10],
-  [3, 7, 11],
   //diag
   [0, 5, 10],
   [1, 6, 11],
@@ -44,7 +44,6 @@ const _winnerLines4x3 = [
   [0, 3, 6],
   [1, 4, 7],
   [2, 5, 8],
-
   [3, 6, 8],
   [4, 7, 10],
   [5, 8, 11],
@@ -56,16 +55,33 @@ const _winnerLines4x3 = [
 ];
 
 const _winnerLines4x4 = [
-  [0, 1, 2, 3],
-  [4, 5, 6, 7],
-  [8, 9, 10, 11],
-  [12, 13, 14, 15],
-  [0, 4, 8, 12],
-  [1, 5, 9, 13],
-  [2, 6, 10, 14],
-  [3, 7, 11, 15],
-  [0, 5, 10, 15],
-  [3, 6, 9, 12],
+  //hor
+  [0, 1, 2],
+  [1, 2, 3],
+  [4, 5, 6],
+  [5, 6, 7],
+  [8, 9, 10],
+  [9, 10, 11],
+  [12, 13, 14],
+  [13, 14, 15],
+
+  //ver
+  [0, 4, 8],
+  [4, 8, 12],
+  [1, 5, 9],
+  [5, 9, 13],
+  [2, 6, 10],
+  [6, 10, 14],
+  [3, 7, 11],
+  [7, 11, 15],
+
+  //diag
+  [0, 5, 10],
+  [5, 10, 15],
+  [6, 9, 12],
+  [3, 6, 9],
+  [1, 6, 11],
+  [4, 9, 14],
 ];
 
 const winnerMaps = new Map();
@@ -180,12 +196,11 @@ class Game extends React.Component {
   }
   
   restart() {
+    const _ref = this;
     this.setState({
-      history: [newMove(_rows, _cols)],
+      history: [newMove(_ref.state.rows, _ref.state.rows)],
       boardId: 0,
       sortAscending: true,
-      rows: _rows,
-      cols: _cols,
       winnerLines: getWinnerLinesBoard(_rows, _cols),
     });
   }
