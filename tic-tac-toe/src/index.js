@@ -2,8 +2,30 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-const _rows = 3;
-const _cols = 3;
+const _rows = 4;
+const _cols = 4;
+const _winnerLines3x3 = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
+];
+const _winnerLines4x4 = [
+  [0, 1, 2, 3],
+  [4, 5, 6, 7],
+  [8, 9, 10, 11],
+  [12, 13, 14, 15],
+  [0, 4, 8, 12],
+  [1, 5, 9, 13],
+  [2, 6, 10, 14],
+  [3, 7, 11, 15],
+  [0, 5, 10, 15],
+  [3, 6, 9, 12],
+];
 
 const SIZE = {
   rows: _rows,
@@ -11,6 +33,7 @@ const SIZE = {
   moves: _rows * _cols,
   rowsMap: Array(_rows).fill(null),
   colsMap: Array(_cols).fill(null),
+  winnerLines: _rows === 3 ? _winnerLines3x3 : _winnerLines4x4,
 };
 
 function Square(props) {
@@ -72,16 +95,6 @@ class Game extends React.Component {
     this.toggleAscending = this.toggleAscending.bind(this);
     this.goTo = this.goTo.bind(this);
     this.restart = this.restart.bind(this);
-    this.winnerLines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
   }
   
   restart() {
@@ -105,14 +118,20 @@ class Game extends React.Component {
   }
   
   isWinnerLine(sq, line) {
-    const [a, b, c] = line;
-    if(sq[a] && sq[a] === sq[b] && sq[b] === sq[c]) return true;
+    if(sq[line[0]]) {
+      for(let i=1;i < line.length;++i) {
+        if(sq[line[i-1]] !== sq[line[i]]) {
+          return false;
+        }
+      }
+      return true;
+    }
     return false;
   }
   
   getWinnerLine(sq) {
-    for(let i=0;i<this.winnerLines.length; ++i) {
-      const wLine = this.winnerLines[i];
+    for(let i=0;i<SIZE.winnerLines.length; ++i) {
+      const wLine = SIZE.winnerLines[i];
       if(this.isWinnerLine(sq, wLine)) {
         return wLine;
       }
@@ -121,7 +140,6 @@ class Game extends React.Component {
   }
 
   translateMove(id) {
-    console.log(id);
     return `${Math.floor(id/SIZE.cols)},${id%SIZE.cols}`;
   }
   
