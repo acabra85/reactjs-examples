@@ -54,10 +54,12 @@ class Game extends React.Component {
     this.state = {
       history: [newMove()],
       boardId: 0,
+      sortAscending: true,
     };
     this.handleSquareClick = this.handleSquareClick.bind(this);
     this.isWinnerLine = this.isWinnerLine.bind(this);
     this.translateMove = this.translateMove.bind(this);
+    this.toggleAscending = this.toggleAscending.bind(this);
     this.goTo = this.goTo.bind(this);
     this.restart = this.restart.bind(this);
     this.winnerLines = [
@@ -82,6 +84,13 @@ class Game extends React.Component {
   goTo(id) {
     this.setState({
       boardId:id,
+    });
+  }
+  
+  toggleAscending(e) {
+    const toggleVal = !this.state.sortAscending;
+    this.setState({
+      sortAscending: toggleVal,
     });
   }
   
@@ -116,23 +125,21 @@ class Game extends React.Component {
       console.log('no more moves');
       return;
     }
-    const _ref = this;
-    const nextTurn = !current.turnX;
     const squares = current.squares.slice();
     squares[id] = current.turnX ? 'X': 'O';
-    const winnerLine = _ref.getWinnerLine(squares)
+    const winnerLine = this.getWinnerLine(squares)
     const _translatedMove = this.translateMove(id);
     this.setState({
       history: this.state.history.concat([{
         squares: squares,
         id: (current.id + 1),
         move: _translatedMove,
-        winnerLine: _ref.getWinnerLine(squares),
-        turnX: nextTurn,
+        winnerLine: winnerLine,
+        turnX: !current.turnX,
         gameOver: winnerLine !== null || current.id + 1 === 9,
       }]),
       boardId: current.id + 1,
-    }, () => console.log('updated'));    
+    }, () => console.log('updated'));
   }
   
   render() {
@@ -141,7 +148,7 @@ class Game extends React.Component {
     const winnerLabel = current.winnerLine ? 'The winner is: ' + current.squares[current.winnerLine[0]] + '!!!': '';
     const statusLabel = current.gameOver && current.winnerLine ? winnerLabel : turnLabel;
     const buttons = {
-      next: current.id + 1 < this.state.history.length ,
+      next: current.id + 1 < this.state.history.length,
       prev: current.id - 1 >= 0,
     };
     const moves = this.state.history.map((h, idx) => {
@@ -171,8 +178,15 @@ class Game extends React.Component {
           </div>
         </div>
         <div className="game-info">
-          <div className={current.winnerLine ? "game-result-winner" : (current.gameOver ? "game-result-draw" : "")}>{statusLabel}</div>
-          <ol>{moves}</ol>
+          <div className={current.winnerLine ? "game-result-winner" : (current.gameOver ? "game-result-draw" : "game-next-move")}>{statusLabel}</div>
+          <div>
+            <label htmlFor="toggle-sorting">{this.state.sortAscending ? 'Ascending': 'Descending'}</label>
+            <input name="toggle-sorting" type="checkbox" 
+              onClick={this.toggleAscending} 
+              checked={this.state.sortAscending}
+              onChange={e => {}}/>
+          </div>
+          <ol reversed={!this.state.sortAscending}>{this.state.sortAscending ? moves :  moves.reverse()}</ol>
         </div>
       </div>
     );

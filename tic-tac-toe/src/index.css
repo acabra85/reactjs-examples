@@ -29,6 +29,10 @@ ol, ul {
   color: red;
 }
 
+.game-next-move {
+  margin-bottom: 10px;
+}
+
 .square {
   background: #fff;
   border: 1px solid #999;
