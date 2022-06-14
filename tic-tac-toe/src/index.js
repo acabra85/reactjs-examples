@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-const _rows = 4;
-const _cols = 4;
+const _rows = 3;
+const _cols = 3;
 const _winnerLines3x3 = [
   [0, 1, 2],
   [3, 4, 5],
@@ -14,6 +14,47 @@ const _winnerLines3x3 = [
   [0, 4, 8],
   [2, 4, 6],
 ];
+
+const _winnerLines3x4 = [
+  //hor
+  [0, 1, 2],
+  [1, 2, 3],
+  [4, 5, 6],
+  [5, 6, 7],
+  [8, 9, 10],
+  [9, 10, 11],
+  //ver
+  [0, 4, 8],
+  [1, 5, 9],
+  [2, 6, 10],
+  [3, 7, 11],
+  //diag
+  [0, 5, 10],
+  [1, 6, 11],
+  [3, 6, 9],
+  [2, 5, 8],
+];
+
+const _winnerLines4x3 = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [9, 10, 11],
+  //ver
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+
+  [3, 6, 8],
+  [4, 7, 10],
+  [5, 8, 11],
+  //diag
+  [0, 4, 8],
+  [2, 4, 6],
+  [3, 7, 11],
+  [5, 7, 9],
+];
+
 const _winnerLines4x4 = [
   [0, 1, 2, 3],
   [4, 5, 6, 7],
@@ -27,14 +68,20 @@ const _winnerLines4x4 = [
   [3, 6, 9, 12],
 ];
 
-const SIZE = {
-  rows: _rows,
-  cols: _cols,
-  moves: _rows * _cols,
-  rowsMap: Array(_rows).fill(null),
-  colsMap: Array(_cols).fill(null),
-  winnerLines: _rows === 3 ? _winnerLines3x3 : _winnerLines4x4,
-};
+const winnerMaps = new Map();
+winnerMaps.set("3x3", _winnerLines3x3);
+winnerMaps.set("3x4", _winnerLines3x4);
+winnerMaps.set("4x3", _winnerLines4x3);
+winnerMaps.set("4x4", _winnerLines4x4);
+
+function getWinnerLinesBoard(rows, cols) {
+  const key = rows + "x" + cols;
+  if(winnerMaps.has(key)) {
+    return winnerMaps.get(key);
+  }
+  console.log('no config found: ' + key);
+  return null;
+}
 
 function Square(props) {
   const class_name = !props.winner ? "square" : "square winner-cell"
@@ -58,9 +105,9 @@ class Board extends React.Component {
 
   render() {
     const _ref = this;
-    const rows = SIZE.rowsMap.map((v,i) => { 
+    const rows = _ref.props.rowsMap.map((v,i) => { 
       return <div key={i} className="board-row">
-        {SIZE.colsMap.map((el, idx) => _ref.renderSquare(i*SIZE.cols + idx))}
+        {_ref.props.colsMap.map((el, idx) => _ref.renderSquare(i*_ref.props.cols + idx))}
       </div>
     });
     return (
@@ -71,9 +118,9 @@ class Board extends React.Component {
   }
 }
 
-const newMove = () => {
+const newMove = (cols, rows) => {
   return {
-    squares: Array(SIZE.moves).fill(null),
+    squares: Array(cols*rows).fill(null),
     id: 0,
     move: null,
     gameOver: false,
@@ -85,22 +132,61 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [newMove()],
+      history: [newMove(_rows, _cols)],
       boardId: 0,
       sortAscending: true,
+      rows: _rows,
+      cols: _cols,
+      winnerLines: getWinnerLinesBoard(_rows, _cols),
     };
     this.handleSquareClick = this.handleSquareClick.bind(this);
     this.isWinnerLine = this.isWinnerLine.bind(this);
     this.translateMove = this.translateMove.bind(this);
     this.toggleAscending = this.toggleAscending.bind(this);
+    this.changeCols = this.changeCols.bind(this);
+    this.changeRows = this.changeRows.bind(this);
     this.goTo = this.goTo.bind(this);
     this.restart = this.restart.bind(this);
+  }
+
+  changeRows(e) {
+    const rows = parseInt(e.target.value);
+    const _ref = this;
+    const winnerLines = getWinnerLinesBoard(rows, this.state.cols);
+    if(winnerLines) {
+      this.setState({
+        history: [newMove(rows, _ref.state.cols)],
+        boardId: 0,
+        sortAscending: true,
+        rows: rows,
+        winnerLines: winnerLines,
+      });
+    }
+  }
+
+  changeCols(e) {
+    const cols = parseInt(e.target.value);
+    const _ref = this;
+    const winnerLines = getWinnerLinesBoard(this.state.rows, cols);
+    if(winnerLines) {
+      this.setState({
+        history: [newMove(_ref.state.cols, cols)],
+        boardId: 0,
+        sortAscending: true,
+        cols: cols,
+        winnerLines: winnerLines,
+      });
+    }
   }
   
   restart() {
     this.setState({
-      history: [newMove()],
+      history: [newMove(_rows, _cols)],
       boardId: 0,
+      sortAscending: true,
+      rows: _rows,
+      cols: _cols,
+      winnerLines: getWinnerLinesBoard(_rows, _cols),
     });
   }
   
@@ -130,8 +216,8 @@ class Game extends React.Component {
   }
   
   getWinnerLine(sq) {
-    for(let i=0;i<SIZE.winnerLines.length; ++i) {
-      const wLine = SIZE.winnerLines[i];
+    for(let i=0;i<this.state.winnerLines.length; ++i) {
+      const wLine = this.state.winnerLines[i];
       if(this.isWinnerLine(sq, wLine)) {
         return wLine;
       }
@@ -140,7 +226,7 @@ class Game extends React.Component {
   }
 
   translateMove(id) {
-    return `${Math.floor(id/SIZE.cols)},${id%SIZE.cols}`;
+    return `${Math.floor(id/this.state.cols)},${id%this.state.cols}`;
   }
   
   handleSquareClick(id) {
@@ -158,6 +244,7 @@ class Game extends React.Component {
     squares[id] = current.turnX ? 'X': 'O';
     const winnerLine = this.getWinnerLine(squares)
     const _translatedMove = this.translateMove(id);
+    const _ref = this;
     this.setState({
       history: this.state.history.concat([{
         squares: squares,
@@ -165,7 +252,7 @@ class Game extends React.Component {
         move: _translatedMove,
         winnerLine: winnerLine,
         turnX: !current.turnX,
-        gameOver: winnerLine !== null || current.id + 1 === SIZE.moves,
+        gameOver: winnerLine !== null || current.id + 1 === _ref.state.cols * _ref.state.rows,
       }]),
       boardId: current.id + 1,
     });
@@ -188,10 +275,19 @@ class Game extends React.Component {
         <button onClick={() => this.goTo(h.id)} className={buttonClass}>{gotoLabel}</button>
       </li>;
     });
+
+    const rowsMap = Array(this.state.rows).fill(null);
+    const colsMap = Array(this.state.cols).fill(null);
     return (
       <div className="game">
         <div className="game-board">
-          <Board winner={current.winnerLine} squares={current.squares} onClick={(i) => this.handleSquareClick(i)} />
+          <Board 
+            winner={current.winnerLine} 
+            squares={current.squares} 
+            cols={this.state.cols}
+            colsMap={colsMap}
+            rowsMap={rowsMap}
+            onClick={(i) => this.handleSquareClick(i)} />
           <div >
             <button disabled={!buttons.prev} onClick={() => this.goTo(current.id - 1)}>
               {'<<'}
@@ -207,6 +303,12 @@ class Game extends React.Component {
           </div>
         </div>
         <div className="game-info">
+          <div>
+            <label htmlFor='size-rows'>R:</label>
+            <input name="size-rows" type="number" max={5} min={3} onChange={this.changeRows} value={this.state.rows} />
+            <label htmlFor='size-cols'>C:</label>
+            <input name="size-cols" type="number" max={5} min={3} onChange={this.changeCols} value={this.state.cols} />
+          </div>
           <div className={current.winnerLine ? "game-result-winner" : (current.gameOver ? "game-result-draw" : "game-next-move")}>{statusLabel}</div>
           <div>
             <label htmlFor="toggle-sorting">{this.state.sortAscending ? 'Ascending': 'Descending'}</label>
