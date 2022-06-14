@@ -2,6 +2,17 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
+const _rows = 3;
+const _cols = 3;
+
+const SIZE = {
+  rows: _rows,
+  cols: _cols,
+  moves: _rows * _cols,
+  rowsMap: Array(_rows).fill(null),
+  colsMap: Array(_cols).fill(null),
+};
+
 function Square(props) {
   const class_name = !props.winner ? "square" : "square winner-cell"
   return (
@@ -24,10 +35,9 @@ class Board extends React.Component {
 
   render() {
     const _ref = this;
-    const toMap = Array(3).fill(null);
-    const rows = toMap.map((v,i) => { 
+    const rows = SIZE.rowsMap.map((v,i) => { 
       return <div key={i} className="board-row">
-        {toMap.map((el, idx) => _ref.renderSquare(i*3 + idx))}
+        {SIZE.colsMap.map((el, idx) => _ref.renderSquare(i*SIZE.cols + idx))}
       </div>
     });
     return (
@@ -40,7 +50,7 @@ class Board extends React.Component {
 
 const newMove = () => {
   return {
-    squares: Array(9).fill(null),
+    squares: Array(SIZE.moves).fill(null),
     id: 0,
     move: null,
     gameOver: false,
@@ -111,7 +121,8 @@ class Game extends React.Component {
   }
 
   translateMove(id) {
-    return `${Math.floor(id/3)},${id%3}`;
+    console.log(id);
+    return `${Math.floor(id/SIZE.cols)},${id%SIZE.cols}`;
   }
   
   handleSquareClick(id) {
@@ -136,7 +147,7 @@ class Game extends React.Component {
         move: _translatedMove,
         winnerLine: winnerLine,
         turnX: !current.turnX,
-        gameOver: winnerLine !== null || current.id + 1 === 9,
+        gameOver: winnerLine !== null || current.id + 1 === SIZE.moves,
       }]),
       boardId: current.id + 1,
     });
