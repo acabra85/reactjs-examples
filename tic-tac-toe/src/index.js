@@ -110,6 +110,17 @@ winnerMaps.set("3x4", _winnerLines3x4);
 winnerMaps.set("4x3", _winnerLines4x3);
 winnerMaps.set("4x4", _winnerLines4x4);
 
+const buildNewState = (rows, cols, winnerLines) => {
+  return {
+    history: [newMove(rows, cols)],
+    boardId: 0,
+    sortAscending: true,
+    cols: cols,
+    rows: rows,
+    winnerLines: winnerLines,
+  }
+};
+
 function getWinnerLinesBoard(rows, cols) {
   const key = rows + "x" + cols;
   if(winnerMaps.has(key)) {
@@ -167,14 +178,8 @@ const newMove = (cols, rows) => {
 class Game extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      history: [newMove(_rows, _cols)],
-      boardId: 0,
-      sortAscending: true,
-      rows: _rows,
-      cols: _cols,
-      winnerLines: getWinnerLinesBoard(_rows, _cols),
-    };
+    const winnerLines = getWinnerLinesBoard(_rows, _cols);
+    this.state = buildNewState(_rows, _cols, winnerLines);
     this.handleSquareClick = this.handleSquareClick.bind(this);
     this.isWinnerLine = this.isWinnerLine.bind(this);
     this.translateMove = this.translateMove.bind(this);
@@ -187,47 +192,28 @@ class Game extends React.Component {
 
   changeRows(e) {
     const rows = parseInt(e.target.value);
-    const _ref = this;
     const winnerLines = getWinnerLinesBoard(rows, this.state.cols);
     if(winnerLines) {
-      this.setState({
-        history: [newMove(rows, _ref.state.cols)],
-        boardId: 0,
-        sortAscending: true,
-        rows: rows,
-        winnerLines: winnerLines,
-      });
+      this.setState(buildNewState(rows, this.state.cols, winnerLines));
     }
   }
 
   changeCols(e) {
     const cols = parseInt(e.target.value);
-    const _ref = this;
     const winnerLines = getWinnerLinesBoard(this.state.rows, cols);
     if(winnerLines) {
-      this.setState({
-        history: [newMove(_ref.state.rows, cols)],
-        boardId: 0,
-        sortAscending: true,
-        cols: cols,
-        winnerLines: winnerLines,
-      });
+      this.setState(buildNewState(this.state.rows, cols, winnerLines));
     }
   }
   
   restart() {
-    const _ref = this;
-    this.setState({
-      history: [newMove(_ref.state.rows, _ref.state.cols)],
-      boardId: 0,
-      sortAscending: true,
-      winnerLines: getWinnerLinesBoard(_ref.state.rows, _ref.state.cols),
-    });
+    const winnerLines = getWinnerLinesBoard(this.state.rows, this.state.cols);
+    this.setState(buildNewState(this.state.rows, this.state.cols, winnerLines));
   }
   
   goTo(id) {
     this.setState({
-      boardId:id,
+      boardId: id,
     });
   }
   
