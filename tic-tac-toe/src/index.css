@@ -70,7 +70,17 @@ ol, ul {
   flex-direction: row;
 }
 
+.game-settings {
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
 .game-info {
-  margin-left: 20px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 

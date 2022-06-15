@@ -1,134 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import { getWinnerLinesBoard } from './solutions';
+import { _rows, _cols, MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS } from "./constants.js";
 
-const _rows = 3;
-const _cols = 3;
-const _winnerLines3x3 = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
-
-const _winnerLines3x4 = [
-  /*
-  [0, 1,  2,  3],
-  [4, 5,  6,  7],
-  [8, 9, 10, 11],
-  */
-  //ver
-  [0, 4, 8],
-  [1, 5, 9],
-  [2, 6, 10],
-  [3, 7, 11],
-  //hor
-  [0, 1, 2],
-  [1, 2, 3],
-  [4, 5, 6],
-  [5, 6, 7],
-  [8, 9, 10],
-  [9, 10, 11],
-  //diag
-  [0, 5, 10],
-  [1, 6, 11],
-  [3, 6, 9],
-  [2, 5, 8],
-];
-
-const _winnerLines4x3 = [
-  /*
-  [0,  1,  2],
-  [3,  4,  5],
-  [6,  7,  8],
-  [9, 10, 11],
-  */
-  //hor
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [9, 10, 11],
-  //ver
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [3, 6, 9],
-  [4, 7, 10],
-  [5, 8, 11],
-  //diag
-  [0, 4, 8],
-  [2, 4, 6],
-  [3, 7, 11],
-  [5, 7, 9],
-];
-
-const _winnerLines4x4 = [
-  /*
-  [ 0,  1,  2,  3],
-  [ 4,  5,  6,  7],
-  [ 8,  9, 10, 11],
-  [12, 13, 14, 15],
-  */
-  //hor
-  [0, 1, 2],
-  [1, 2, 3],
-  [4, 5, 6],
-  [5, 6, 7],
-  [8, 9, 10],
-  [9, 10, 11],
-  [12, 13, 14],
-  [13, 14, 15],
-
-  //ver
-  [0, 4, 8],
-  [4, 8, 12],
-  [1, 5, 9],
-  [5, 9, 13],
-  [2, 6, 10],
-  [6, 10, 14],
-  [3, 7, 11],
-  [7, 11, 15],
-
-  //diag
-  [0, 5, 10],
-  [5, 10, 15],
-  [3, 6, 9],
-  [6, 9, 12],
-  [1, 6, 11],
-  [4, 9, 14],
-  [2, 5, 8],
-  [7, 10, 13],
-];
-
-const winnerMaps = new Map();
-winnerMaps.set("3x3", _winnerLines3x3);
-winnerMaps.set("3x4", _winnerLines3x4);
-winnerMaps.set("4x3", _winnerLines4x3);
-winnerMaps.set("4x4", _winnerLines4x4);
-
-const buildNewState = (rows, cols, winnerLines) => {
-  return {
-    history: [newMove(rows, cols)],
-    boardId: 0,
-    sortAscending: true,
-    cols: cols,
-    rows: rows,
-    winnerLines: winnerLines,
-  }
-};
-
-function getWinnerLinesBoard(rows, cols) {
-  const key = rows + "x" + cols;
-  if(winnerMaps.has(key)) {
-    return winnerMaps.get(key);
-  }
-  console.log('no config found: ' + key);
-  return null;
-}
 
 function Square(props) {
   const class_name = !props.winner ? "square" : "square winner-cell"
@@ -173,6 +48,17 @@ const newMove = (cols, rows) => {
     gameOver: false,
     turnX: true,
   };
+};
+  
+const buildNewState = (rows, cols, winnerLines) => {
+  return {
+    history: [newMove(rows, cols)],
+    boardId: 0,
+    sortAscending: true,
+    cols: cols,
+    rows: rows,
+    winnerLines: winnerLines,
+  }
 };
 
 class Game extends React.Component {
@@ -302,6 +188,12 @@ class Game extends React.Component {
     return (
       <div className="game">
         <div className="game-board">
+          <div className='game-settings'>
+            <label htmlFor='size-rows'>R:</label>
+            <input name="size-rows" type="number" max={MAX_ROWS} min={MIN_ROWS} onChange={this.changeRows} value={this.state.rows} />
+            <label htmlFor='size-cols'>C:</label>
+            <input name="size-cols" type="number" max={MAX_COLS} min={MIN_COLS} onChange={this.changeCols} value={this.state.cols} />
+          </div>
           <Board 
             winner={current.winnerLine} 
             squares={current.squares} 
@@ -318,18 +210,10 @@ class Game extends React.Component {
             </button>
           </div>
           <div>
-            <button onClick={this.restart}>
-              {'Restart'}
-            </button>
+            <button onClick={this.restart}>Restart</button>
           </div>
         </div>
         <div className="game-info">
-          <div>
-            <label htmlFor='size-rows'>R:</label>
-            <input name="size-rows" type="number" max={5} min={3} onChange={this.changeRows} value={this.state.rows} />
-            <label htmlFor='size-cols'>C:</label>
-            <input name="size-cols" type="number" max={5} min={3} onChange={this.changeCols} value={this.state.cols} />
-          </div>
           <div className={current.winnerLine ? "game-result-winner" : (current.gameOver ? "game-result-draw" : "game-next-move")}>{statusLabel}</div>
           <div>
             <label htmlFor="toggle-sorting">{this.state.sortAscending ? 'Ascending': 'Descending'}</label>
