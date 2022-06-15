@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { getWinnerLinesBoard } from './solutions';
-import { _rows, _cols, MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS } from "./constants.js";
+import { _strikeLen, _rows, _cols, MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS } from "./constants.js";
 
 
 function Square(props) {
@@ -50,13 +50,14 @@ const newMove = (cols, rows) => {
   };
 };
   
-const buildNewState = (rows, cols, winnerLines) => {
+const buildNewState = (rows, cols, winnerLines, strikeLen) => {
   return {
     history: [newMove(rows, cols)],
     boardId: 0,
     sortAscending: true,
     cols: cols,
     rows: rows,
+    strikeLen: strikeLen,
     winnerLines: winnerLines,
   }
 };
@@ -64,37 +65,46 @@ const buildNewState = (rows, cols, winnerLines) => {
 class Game extends React.Component {
   constructor(props) {
     super(props);
-    const winnerLines = getWinnerLinesBoard(_rows, _cols);
-    this.state = buildNewState(_rows, _cols, winnerLines);
+    const winnerLines = getWinnerLinesBoard(_rows, _cols, _strikeLen);
+    this.state = buildNewState(_rows, _cols, winnerLines, _strikeLen);
     this.handleSquareClick = this.handleSquareClick.bind(this);
     this.isWinnerLine = this.isWinnerLine.bind(this);
     this.translateMove = this.translateMove.bind(this);
     this.toggleAscending = this.toggleAscending.bind(this);
     this.changeCols = this.changeCols.bind(this);
+    this.changeStrikeLen = this.changeStrikeLen.bind(this);
     this.changeRows = this.changeRows.bind(this);
     this.goTo = this.goTo.bind(this);
     this.restart = this.restart.bind(this);
   }
 
+  changeStrikeLen(e) {
+    const strikeLen = parseInt(e.target.value);
+    const winnerLines = getWinnerLinesBoard(this.state.rows, this.state.cols, strikeLen);
+    if(winnerLines) {
+      this.setState(buildNewState(this.state.rows, this.state.cols, winnerLines, strikeLen));
+    }
+  }
+
   changeRows(e) {
     const rows = parseInt(e.target.value);
-    const winnerLines = getWinnerLinesBoard(rows, this.state.cols);
+    const winnerLines = getWinnerLinesBoard(rows, this.state.cols, this.state.strikeLen);
     if(winnerLines) {
-      this.setState(buildNewState(rows, this.state.cols, winnerLines));
+      this.setState(buildNewState(rows, this.state.cols, winnerLines, this.state.strikeLen));
     }
   }
 
   changeCols(e) {
     const cols = parseInt(e.target.value);
-    const winnerLines = getWinnerLinesBoard(this.state.rows, cols);
+    const winnerLines = getWinnerLinesBoard(this.state.rows, cols, this.state.strikeLen);
     if(winnerLines) {
-      this.setState(buildNewState(this.state.rows, cols, winnerLines));
+      this.setState(buildNewState(this.state.rows, cols, winnerLines, this.state.strikeLen));
     }
   }
   
   restart() {
-    const winnerLines = getWinnerLinesBoard(this.state.rows, this.state.cols);
-    this.setState(buildNewState(this.state.rows, this.state.cols, winnerLines));
+    const winnerLines = getWinnerLinesBoard(this.state.rows, this.state.cols, this.state.strikeLen);
+    this.setState(buildNewState(this.state.rows, this.state.cols, winnerLines, this.state.strikeLen));
   }
   
   goTo(id) {
@@ -189,6 +199,8 @@ class Game extends React.Component {
       <div className="game">
         <div className="game-board">
           <div className='game-settings'>
+            <label htmlFor='strike-len'>Strike</label>
+            <input name="strike-len" type="number" max={Math.max(MAX_ROWS, MAX_COLS)} min={Math.min(MIN_ROWS, MIN_COLS)} onChange={this.changeStrikeLen} value={this.state.strikeLen} />
             <label htmlFor='size-rows'>R:</label>
             <input name="size-rows" type="number" max={MAX_ROWS} min={MIN_ROWS} onChange={this.changeRows} value={this.state.rows} />
             <label htmlFor='size-cols'>C:</label>
