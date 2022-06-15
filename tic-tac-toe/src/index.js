@@ -50,11 +50,11 @@ const newMove = (cols, rows) => {
   };
 };
   
-const buildNewState = (rows, cols, winnerLines, strikeLen) => {
+const buildNewState = (rows, cols, winnerLines, strikeLen, sortAscending) => {
   return {
     history: [newMove(rows, cols)],
     boardId: 0,
-    sortAscending: true,
+    sortAscending: sortAscending,
     cols: cols,
     rows: rows,
     strikeLen: Math.min(Math.min(rows, cols),strikeLen),
@@ -66,7 +66,7 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     const winnerLines = getWinnerLinesBoard(_rows, _cols, _strikeLen);
-    this.state = buildNewState(_rows, _cols, winnerLines, _strikeLen);
+    this.state = buildNewState(_rows, _cols, winnerLines, _strikeLen, true);
     this.handleSquareClick = this.handleSquareClick.bind(this);
     this.isWinnerLine = this.isWinnerLine.bind(this);
     this.translateMove = this.translateMove.bind(this);
@@ -82,7 +82,7 @@ class Game extends React.Component {
     const strikeLen = parseInt(e.target.value);
     const winnerLines = getWinnerLinesBoard(this.state.rows, this.state.cols, strikeLen);
     if(winnerLines) {
-      this.setState(buildNewState(this.state.rows, this.state.cols, winnerLines, strikeLen));
+      this.setState(buildNewState(this.state.rows, this.state.cols, winnerLines, strikeLen, this.state.sortAscending));
     }
   }
 
@@ -90,7 +90,7 @@ class Game extends React.Component {
     const rows = parseInt(e.target.value);
     const winnerLines = getWinnerLinesBoard(rows, this.state.cols, this.state.strikeLen);
     if(winnerLines) {
-      this.setState(buildNewState(rows, this.state.cols, winnerLines, this.state.strikeLen));
+      this.setState(buildNewState(rows, this.state.cols, winnerLines, this.state.strikeLen, this.state.sortAscending));
     }
   }
 
@@ -98,13 +98,13 @@ class Game extends React.Component {
     const cols = parseInt(e.target.value);
     const winnerLines = getWinnerLinesBoard(this.state.rows, cols, this.state.strikeLen);
     if(winnerLines) {
-      this.setState(buildNewState(this.state.rows, cols, winnerLines, this.state.strikeLen));
+      this.setState(buildNewState(this.state.rows, cols, winnerLines, this.state.strikeLen, this.state.sortAscending));
     }
   }
   
   restart() {
     const winnerLines = getWinnerLinesBoard(this.state.rows, this.state.cols, this.state.strikeLen);
-    this.setState(buildNewState(this.state.rows, this.state.cols, winnerLines, this.state.strikeLen));
+    this.setState(buildNewState(this.state.rows, this.state.cols, winnerLines, this.state.strikeLen, this.state.sortAscending));
   }
   
   goTo(id) {
