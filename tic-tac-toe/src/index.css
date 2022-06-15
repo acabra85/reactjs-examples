@@ -50,6 +50,7 @@ ol, ul {
 
 .winner-cell {
   background-color: green;
+  color: #fff;
 }
 
 .current-button-move {
