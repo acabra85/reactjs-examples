@@ -180,9 +180,10 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS } from "./constants.js";
     return winnerLines;
   };
   
- export const getWinnerLinesBoard = (rows, cols, strikeLen) => {
+ export const getWinnerLinesBoard = (rows, cols, iStrikeLen) => {
+     const strikeLen = Math.min(iStrikeLen, Math.min(rows, cols));
     if(rows < MIN_ROWS || rows > MAX_ROWS || cols < MIN_COLS || cols > MAX_COLS 
-        || (strikeLen < MIN_ROWS && strikeLen < MIN_COLS) || (strikeLen > rows && strikeLen > cols)) {
+        || (strikeLen < MIN_ROWS && strikeLen < MIN_COLS) || strikeLen > Math.min(rows,cols)) {
       console.log('invalid dimensions');
       return null;
     }

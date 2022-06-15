@@ -57,7 +57,7 @@ const buildNewState = (rows, cols, winnerLines, strikeLen) => {
     sortAscending: true,
     cols: cols,
     rows: rows,
-    strikeLen: strikeLen,
+    strikeLen: Math.min(Math.min(rows, cols),strikeLen),
     winnerLines: winnerLines,
   }
 };
