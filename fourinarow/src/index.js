@@ -6,9 +6,8 @@ import { _strikeLen, _rows, _cols, MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS } from
 
 
 function Square(props) {
-  const class_name = !props.winner ? "square" : "square winner-cell"
   return (
-      <button className={class_name} onClick={props.onClick}>
+      <button className={'square ' + props.compClassName} onClick={props.onClick}>
         {props.value}
       </button>
     );
@@ -16,11 +15,11 @@ function Square(props) {
 
 class Board extends React.Component {
   renderSquare(i) {
-    const isWinner = this.props.winner && this.props.winner.indexOf(i) >= 0;
+    const cell = this.props.squares[i];
     return <Square 
-            key={i}
-             value={this.props.squares[i]}
-             winner={isWinner}
+             key={i}
+             value={cell.val}
+             compClassName={cell.cellClass}
              onClick={() => this.props.onClick(i)}
              />;
   }
@@ -40,9 +39,36 @@ class Board extends React.Component {
   }
 }
 
+const newCell = () => {
+  return {
+    cellClass: '', 
+    val: null,
+    equals(o) {
+      return this.val === o?.val;
+    },
+    isSet() {
+      return this.val !== null;
+    },
+    set(isPlayerX) {
+      this.val = isPlayerX ? 'X' : 'O';
+    },
+    color() {
+      this.cellClass = (this.val === 'X') ? 'player-x-cell' : 'player-o-cell';
+    },
+    clone() {
+      const other = newCell();
+      other.cellClass = this.cellClass;
+      other.val = this.val;
+      return other;
+    }
+  };
+};
+
 const newMove = (cols, rows) => {
   return {
-    squares: Array(cols*rows).fill(null),
+    squares: Array(cols*rows).fill(null).map((v, i) => {
+      return newCell();
+    }),
     id: 0,
     move: null,
     gameOver: false,
@@ -121,9 +147,9 @@ class Game extends React.Component {
   }
   
   isWinnerLine(sq, line) {
-    if(sq[line[0]]) {
+    if(sq[line[0]].isSet()) {
       for(let i=1;i < line.length;++i) {
-        if(sq[line[i-1]] !== sq[line[i]]) {
+        if(!sq[line[i-1]].equals(sq[line[i]])) {
           return false;
         }
       }
@@ -136,7 +162,7 @@ class Game extends React.Component {
     for(let i=0;i<this.state.winnerLines.length; ++i) {
       const wLine = this.state.winnerLines[i];
       if(this.isWinnerLine(sq, wLine)) {
-        return wLine;
+        wLine.map((v, i) => sq[v].color());
       }
     }
     return null;
@@ -153,12 +179,12 @@ class Game extends React.Component {
     }
     const current = this.state.history[this.state.history.length - 1];
     
-    if(current.gameOver || current.squares[id]) {
+    if(current.gameOver || current.squares[id].val) {
       console.log('no more moves');
       return;
     }
-    const squares = current.squares.slice();
-    squares[id] = current.turnX ? 'X': 'O';
+    const squares = current.squares.map((v,i) => v.clone());
+    squares[id].set(current.turnX);
     const winnerLine = this.getWinnerLine(squares)
     const _translatedMove = this.translateMove(id);
     const _ref = this;
@@ -169,7 +195,7 @@ class Game extends React.Component {
         move: _translatedMove,
         winnerLine: winnerLine,
         turnX: !current.turnX,
-        gameOver: winnerLine !== null || current.id + 1 === _ref.state.cols * _ref.state.rows,
+        gameOver: current.id + 1 === _ref.state.cols * _ref.state.rows,
       }]),
       boardId: current.id + 1,
     });
@@ -206,6 +232,7 @@ class Game extends React.Component {
             <label htmlFor='size-cols'>C:</label>
             <input name="size-cols" type="number" max={MAX_COLS} min={MIN_COLS} onChange={this.changeCols} value={this.state.cols} />
           </div>
+
           <Board 
             winner={current.winnerLine} 
             squares={current.squares} 
@@ -234,9 +261,13 @@ class Game extends React.Component {
               checked={this.state.sortAscending}
               onChange={e => {}}/>
           </div>
-          <ol 
-            reversed={!this.state.sortAscending} 
-            start={this.state.sortAscending ? '0' : this.state.history.length - 1}>{this.state.sortAscending ? moves :  moves.reverse()}</ol>
+          <div className='time-machine'>
+            <ol 
+              reversed={!this.state.sortAscending} 
+              start={this.state.sortAscending ? '0' : this.state.history.length - 1}>
+                {this.state.sortAscending ? moves :  moves.reverse()}
+            </ol>
+          </div>
         </div>
       </div>
     );

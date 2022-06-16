@@ -48,8 +48,13 @@ ol, ul {
   width: 34px;
 }
 
-.winner-cell {
-  background-color: green;
+.player-x-cell {
+  background-color: crimson;
+  color: #fff;
+}
+
+.player-o-cell {
+  background-color: teal;
   color: #fff;
 }
 
@@ -67,7 +72,7 @@ ol, ul {
 
 .game {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 }
 
 .game-settings {
@@ -82,5 +87,12 @@ ol, ul {
   margin-right: 5px;
   margin-top: 5px;
   margin-bottom: 5px;
+  overflow: scroll;
+  width: 100%;
+}
+
+.time-machine {
+  overflow-y: scroll;
+  height: 200px;
 }
 
