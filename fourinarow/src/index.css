@@ -60,6 +60,7 @@ ol, ul {
 
 .current-button-move {
   font-weight: bold;
+  color: pink;
 }
 
 .square:focus {

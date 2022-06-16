@@ -1,11 +1,11 @@
-import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS } from "./constants.js";
+import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} from "./constants.js";
 
   const solutionsMap = new Map();
   const invalidCellError = new Error();
   const strikeMgr = {
-      len: 3,
+      len: _strikeLen,
       update(val) {
-          if(val< MIN_COLS || val < MIN_ROWS || val>MAX_COLS || val>MAX_ROWS) {
+          if(val < MIN_STRIKE_LEN || val > Math.min(MAX_COLS, MAX_ROWS)) {
               return;
           }
           this.len = val;
@@ -183,7 +183,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS } from "./constants.js";
  export const getWinnerLinesBoard = (rows, cols, iStrikeLen) => {
      const strikeLen = Math.min(iStrikeLen, Math.min(rows, cols));
     if(rows < MIN_ROWS || rows > MAX_ROWS || cols < MIN_COLS || cols > MAX_COLS 
-        || (strikeLen < MIN_ROWS && strikeLen < MIN_COLS) || strikeLen > Math.min(rows,cols)) {
+        || (strikeLen < MIN_STRIKE_LEN) || strikeLen > Math.min(rows,cols)) {
       console.log('invalid dimensions');
       return null;
     }

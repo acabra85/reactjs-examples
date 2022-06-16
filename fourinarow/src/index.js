@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { getWinnerLinesBoard } from './solutions';
-import { _strikeLen, _rows, _cols, MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS } from "./constants.js";
+import { _strikeLen, _rows, _cols, MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS, MIN_STRIKE_LEN } from "./constants.js";
 
 
 function Square(props) {
@@ -39,6 +39,26 @@ class Board extends React.Component {
   }
 }
 
+const newCounter = () => {
+  return {
+    x: 0,
+    o: 0,
+    increment(c){
+      if(c === 'X') {
+        ++this.x;
+      } else {
+        ++this.o;
+      }
+    },
+    winner() {
+      return this.x > this.o ? 'X' : this.x < this.o ? 'O' : null;
+    },
+    draw(){
+      return this.o === this.x;
+    },
+  };
+};
+
 const newCell = () => {
   return {
     cellClass: '', 
@@ -73,6 +93,7 @@ const newMove = (cols, rows) => {
     move: null,
     gameOver: false,
     turnX: true,
+    counter: newCounter(),
   };
 };
   
@@ -158,14 +179,16 @@ class Game extends React.Component {
     return false;
   }
   
-  getWinnerLine(sq) {
+  getScoreCount(sq) {
+    const counter = newCounter();
     for(let i=0;i<this.state.winnerLines.length; ++i) {
       const wLine = this.state.winnerLines[i];
       if(this.isWinnerLine(sq, wLine)) {
         wLine.map((v, i) => sq[v].color());
+        counter.increment(sq[wLine[0]].val);
       }
     }
-    return null;
+    return counter;
   }
 
   translateMove(id) {
@@ -185,7 +208,7 @@ class Game extends React.Component {
     }
     const squares = current.squares.map((v,i) => v.clone());
     squares[id].set(current.turnX);
-    const winnerLine = this.getWinnerLine(squares)
+    const scoreCounter = this.getScoreCount(squares);
     const _translatedMove = this.translateMove(id);
     const _ref = this;
     this.setState({
@@ -193,7 +216,7 @@ class Game extends React.Component {
         squares: squares,
         id: (current.id + 1),
         move: _translatedMove,
-        winnerLine: winnerLine,
+        counter: scoreCounter,
         turnX: !current.turnX,
         gameOver: current.id + 1 === _ref.state.cols * _ref.state.rows,
       }]),
@@ -203,19 +226,21 @@ class Game extends React.Component {
   
   render() {
     const current = this.state.history[this.state.boardId];
-    const turnLabel = current.gameOver ? 'Game Over: Draw!!' : 'Next player: ' + (current.id % 2 === 0 ? 'X' : 'O');
-    const winnerLabel = current.winnerLine ? 'The winner is: ' + current.squares[current.winnerLine[0]] + '!!!': '';
-    const statusLabel = current.gameOver && current.winnerLine ? winnerLabel : turnLabel;
+    const scoreLabel = `X: [${current.counter.x}] O: [${current.counter.o}]`;
+    const turnLabel = !current.gameOver ? 'Next player: ' + (current.id % 2 === 0 ? 'X' : 'O') : '';
+    const resultLabel = current.gameOver && current.counter.draw() ? 'Game Over Draw !!!' : 'The winner is: ' + current.counter.winner() + '!!!';
+    const statusLabel = current.gameOver ? resultLabel : turnLabel;
     const buttons = {
       next: current.id + 1 < this.state.history.length,
       prev: current.id - 1 >= 0,
     };
     const moves = this.state.history.map((h, idx) => {
+      const curHistItem = current.id === h.id;
       const player = (h.id % 2) !== 0 ? 'X' : 'O';
       const gotoLabel = h.id === 0 ? "Start" : `${player} moved [${h.move}]`;
-      const buttonClass = current.id === h.id ? "current-button-move" : "";
+      const buttonClass = curHistItem ? "current-button-move" : "";
       return <li key={idx} className={buttonClass}>
-        <button onClick={() => this.goTo(h.id)} className={buttonClass}>{gotoLabel}</button>
+        <button onClick={() => this.goTo(h.id)} className={buttonClass} disabled={curHistItem}>{gotoLabel}</button>
       </li>;
     });
 
@@ -223,16 +248,11 @@ class Game extends React.Component {
     const colsMap = Array(this.state.cols).fill(null);
     return (
       <div className="game">
+        <div className="game-info">
+          <div>{scoreLabel}</div>
+          <div className={!current.gameOver  ? "game-next-move" : (current.counter.draw() ? "game-result-draw" : "game-result-winner") }>{statusLabel}</div>
+        </div>
         <div className="game-board">
-          <div className='game-settings'>
-            <label htmlFor='strike-len'>Strike</label>
-            <input name="strike-len" type="number" max={Math.max(MAX_ROWS, MAX_COLS)} min={Math.min(MIN_ROWS, MIN_COLS)} onChange={this.changeStrikeLen} value={this.state.strikeLen} />
-            <label htmlFor='size-rows'>R:</label>
-            <input name="size-rows" type="number" max={MAX_ROWS} min={MIN_ROWS} onChange={this.changeRows} value={this.state.rows} />
-            <label htmlFor='size-cols'>C:</label>
-            <input name="size-cols" type="number" max={MAX_COLS} min={MIN_COLS} onChange={this.changeCols} value={this.state.cols} />
-          </div>
-
           <Board 
             winner={current.winnerLine} 
             squares={current.squares} 
@@ -240,26 +260,25 @@ class Game extends React.Component {
             colsMap={colsMap}
             rowsMap={rowsMap}
             onClick={(i) => this.handleSquareClick(i)} />
-          <div >
-            <button disabled={!buttons.prev} onClick={() => this.goTo(current.id - 1)}>
-              {'<<'}
-            </button>
-            <button disabled={!buttons.next} onClick={() => this.goTo(current.id + 1)}>
-              {'>>'}
-            </button>
-          </div>
-          <div>
-            <button onClick={this.restart}>Restart</button>
+          <div className='game-settings'>
+            <label htmlFor='strike-len'>Strike</label>
+            <input name="strike-len" type="number" max={Math.max(MAX_ROWS, MAX_COLS)} min={MIN_STRIKE_LEN} onChange={this.changeStrikeLen} value={this.state.strikeLen} />
+            <label htmlFor='size-rows'>R:</label>
+            <input name="size-rows" type="number" max={MAX_ROWS} min={MIN_ROWS} onChange={this.changeRows} value={this.state.rows} />
+            <label htmlFor='size-cols'>C:</label>
+            <input name="size-cols" type="number" max={MAX_COLS} min={MIN_COLS} onChange={this.changeCols} value={this.state.cols} />
+            <button onClick={this.restart} disabled={this.state.history.length === 1}>Restart</button>
           </div>
         </div>
         <div className="game-info">
-          <div className={current.winnerLine ? "game-result-winner" : (current.gameOver ? "game-result-draw" : "game-next-move")}>{statusLabel}</div>
           <div>
             <label htmlFor="toggle-sorting">{this.state.sortAscending ? 'Ascending': 'Descending'}</label>
             <input name="toggle-sorting" type="checkbox" 
               onClick={this.toggleAscending} 
               checked={this.state.sortAscending}
               onChange={e => {}}/>
+            <button disabled={!buttons.prev} onClick={() => this.goTo(current.id - 1)}>{'<<'}</button>
+            <button disabled={!buttons.next} onClick={() => this.goTo(current.id + 1)}>{'>>'}</button>
           </div>
           <div className='time-machine'>
             <ol 
