@@ -1,4 +1,4 @@
-import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} from "./constants.js";
+import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, LINE_DIR, _strikeLen} from "./constants.js";
 
   const solutionsMap = new Map();
   const invalidCellError = new Error();
@@ -35,7 +35,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
       wLine.push(elm);
       key = key + elm + (k===0?'':';');
     }
-    return {key: key, val: wLine };
+    return {key: key, val: wLine, dir: LINE_DIR.ver};
   };
 
   const left= (i, j, rows, cols) => {
@@ -51,7 +51,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
       wLine.push(elm);
       key = key + elm + (k===0?'':';');
     }
-    return {key: key, val: wLine };
+    return {key: key, val: wLine, dir: LINE_DIR.hor};
   };
 
   const right= (i, j, rows, cols) => {
@@ -67,7 +67,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
       wLine.unshift(elm);
       key = (k===0 ? '' : ';') + elm + key;
     }
-    return {key: key, val: wLine};
+    return {key: key, val: wLine, dir: LINE_DIR.hor};
   };
 
   const down = (i, j, rows, cols) => {
@@ -83,7 +83,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
       wLine.unshift(elm);
       key = (k===0 ? '' : ';') + elm + key;
     }
-    return {key: key, val: wLine};
+    return {key: key, val: wLine, dir: LINE_DIR.ver};
   };
 
   const upLeft = (i, j, rows, cols) => {
@@ -99,7 +99,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
       wLine.push(elm);
       key = key + elm + (k===0?'':';');
     }
-    return {key: key, val: wLine};
+    return {key: key, val: wLine, dir: LINE_DIR.diagTopleft};
   };
 
   const upRight = (i, j, rows, cols) => {
@@ -115,7 +115,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
       wLine.push(elm);
       key = key + elm + (k===0?'':';');
     }
-    return {key: key, val: wLine};
+    return {key: key, val: wLine, dir: LINE_DIR.diagTopRight};
   };
 
   const downRight = (i, j, rows, cols) => {
@@ -131,7 +131,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
       wLine.unshift(elm);
       key = (k===0 ? '' : ';') + elm + key;
     }
-    return {key: key, val: wLine};
+    return {key: key, val: wLine, dir: LINE_DIR.diagTopleft};
   };
 
   const downLeft = (i, j, rows, cols) => {
@@ -147,7 +147,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
       wLine.unshift(elm);
       key = (k===0 ? '' : ';') + elm + key;
     }
-    return {key: key, val: wLine};
+    return {key: key, val: wLine, dir: LINE_DIR.diagTopRight};
   };
   
   const allFuns = [up, left, right, down, upLeft, downLeft, upRight, downRight];
@@ -171,7 +171,7 @@ import { MAX_COLS, MIN_COLS, MAX_ROWS, MIN_ROWS, MIN_STRIKE_LEN, _strikeLen} fro
                 const res = f(i, j, rows, cols);
                 if(!set.has(res.key) && validArr(res.val, rows*cols)) {
                     set.add(res.key)
-                    winnerLines.push(res.val);
+                    winnerLines.push(res);
                 }
             } catch(e) {}
         });

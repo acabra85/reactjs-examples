@@ -56,6 +56,12 @@ const newCounter = () => {
     draw(){
       return this.o === this.x;
     },
+    clone() {
+      const other = newCounter();
+      other.x = this.x;
+      other.o = this.o;
+      return other;
+    }
   };
 };
 
@@ -63,6 +69,7 @@ const newCell = () => {
   return {
     cellClass: '', 
     val: null,
+    awards: [false, false, false, false], //see LINE_DIR in constants.js
     equals(o) {
       return this.val === o?.val;
     },
@@ -72,15 +79,20 @@ const newCell = () => {
     set(isPlayerX) {
       this.val = isPlayerX ? 'X' : 'O';
     },
-    color() {
+    award(direction) {
       this.cellClass = (this.val === 'X') ? 'player-x-cell' : 'player-o-cell';
+      this.awards[direction] = true;
     },
     clone() {
       const other = newCell();
       other.cellClass = this.cellClass;
       other.val = this.val;
+      other.awards = this.awards.slice();
       return other;
-    }
+    },
+    isAwarded(direction) {
+      return this.awards[direction];
+    },
   };
 };
 
@@ -167,6 +179,15 @@ class Game extends React.Component {
     });
   }
   
+  /**
+   * A line is consider winner if:
+   *    1. None of the cells corresponding to the line have been awarded for the same direction
+   * 
+   * 
+   * @param {[cell]} sq 
+   * @param {[]} line 
+   * @returns true if the given line corresponds a winner line 
+   */
   isWinnerLine(sq, line) {
     if(sq[line[0]].isSet()) {
       for(let i=1;i < line.length;++i) {
@@ -179,13 +200,14 @@ class Game extends React.Component {
     return false;
   }
   
-  getScoreCount(sq) {
-    const counter = newCounter();
+  getScoreCount(sq, counter) {
     for(let i=0;i<this.state.winnerLines.length; ++i) {
       const wLine = this.state.winnerLines[i];
-      if(this.isWinnerLine(sq, wLine)) {
-        wLine.map((v, i) => sq[v].color());
-        counter.increment(sq[wLine[0]].val);
+      if(this.isWinnerLine(sq, wLine.val)) {
+        if(wLine.val.map(cell => sq[cell].isAwarded(wLine.dir) ? 1 : 0).reduce((prev, cur) => prev + cur, 0) === 0) {
+          wLine.val.map((v, i) => sq[v].award(wLine.dir));
+          counter.increment(sq[wLine.val[0]].val);
+        }
       }
     }
     return counter;
@@ -208,7 +230,7 @@ class Game extends React.Component {
     }
     const squares = current.squares.map((v,i) => v.clone());
     squares[id].set(current.turnX);
-    const scoreCounter = this.getScoreCount(squares);
+    const scoreCounter = this.getScoreCount(squares, current.counter.clone());
     const _translatedMove = this.translateMove(id);
     const _ref = this;
     this.setState({
